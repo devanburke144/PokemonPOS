@@ -3,6 +3,7 @@ import pdb
 import numpy as np
 import csv
 import os
+import datetime
 
 import sqlite3
 from typing import Dict, Any, List, Tuple
@@ -13,6 +14,8 @@ DATA_PATH = os.path.join(BASE_DIR, "data.csv")
 DB_PATH = os.path.join(BASE_DIR, "database.db")
 SKU_PATH = os.path.join(BASE_DIR, "sku.txt")
 TABLE_NAME = 'pkmn'
+
+LOG_FOLDER = "logs"
 
 # Example table schema (customize this)
 # created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -220,6 +223,7 @@ def update_csv(csv_path=CSV_PATH):
     data_cleaned = data_cleaned[:, [0,3,8]]
     data_cleaned = np.repeat(data_cleaned, quantities, 0)
     vector_rounder = np.vectorize(custom_round_function)
+    data_cleaned[:, 2] = np.array([master_checker(sku)[2] for sku in data_cleaned[:, 0]]) # pull prices from database instead
     data_cleaned[:, 2] = vector_rounder(data_cleaned[:, 2].astype('float64')).astype('<U65')
     d_left = data_cleaned[0::2]
     d_right = data_cleaned[1::2]
@@ -253,9 +257,9 @@ def scan_cards():
     """
     Loop to scan multiple tcgplayer_id values.
     Prints each matching card and accumulates total cost.
-    Type 'done' or press Enter with no input to finish.
+    Saves a CSV log to /logs folder including sale price.
     """
-    total_cost = 0.0
+    all_card_records = []  # (id, name, price)
 
     print("=== Card Scanner ===")
     print("Enter tcgplayer_id values. Type 'done' to finish.\n")
@@ -263,11 +267,9 @@ def scan_cards():
     while True:
         sku = input("Scan ID: ").strip()
 
-        # Exit conditions
         if sku.lower() in ("done", "exit", "quit") or sku == "":
             break
 
-        # Look up card
         rows = fetch_all({"tcgplayer_id": sku})
 
         if not rows:
@@ -275,12 +277,10 @@ def scan_cards():
             continue
 
         row = rows[0]
-
-        # Print card nicely
         print(record_to_string_pretty(row))
         print()
 
-        # Extract market price (column index 8)
+        card_name = row[3]
         price = row[8]
 
         if price is None or price == "":
@@ -288,16 +288,67 @@ def scan_cards():
             continue
 
         try:
-            price = float(price)
+            price_float = float(price)
         except ValueError:
             print(f"[!] Price for {sku} is invalid: {price}\n")
             continue
 
-        total_cost += price
+        rounded_str = custom_round_function(price_float)  # e.g. "$12.00"
+        rounded_price = float(rounded_str.replace("$", ""))
+
+        all_card_records.append((sku, card_name, rounded_price))
+
+    # Finished
+    total_cost = sum(price for (_, _, price) in all_card_records)
 
     print("\n=== Scanning Complete ===")
     print(f"Total market cost of scanned cards: ${total_cost:.2f}")
+
+    for sku, name, price in all_card_records:
+        print(f"{name:<30} : ${price:.2f}")
+
     print("==========================\n")
+
+    # ----------------------------------------------
+    #        OPTIONAL SALE PRICE
+    # ----------------------------------------------
+    sale_price = None
+    while True:
+        user_input = input("Enter sale price for this transaction (or leave blank): ").strip()
+        if user_input == "":
+            break
+        try:
+            sale_price = float(user_input)
+            break
+        except ValueError:
+            print("[!] Invalid number. Try again.")
+
+    # ----------------------------------------------
+    #        CREATE LOGS FOLDER IF MISSING
+    # ----------------------------------------------
+    if not os.path.exists(LOG_FOLDER):
+        os.makedirs(LOG_FOLDER)
+
+    # ----------------------------------------------
+    #        WRITE LOG FILE
+    # ----------------------------------------------
+
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"scan_log_{timestamp}.csv"
+    filepath = os.path.join(LOG_FOLDER, filename)
+
+    rows = [("tcgplayer_id", "card_name", "market_price")]
+    for sku, name, price in all_card_records:
+        rows.append((sku, name, f"{price:.2f}"))
+
+    rows.append(("TOTAL_MARKET", "", f"{total_cost:.2f}"))
+    rows.append(("SALE_PRICE", "", "" if sale_price is None else f"{sale_price:.2f}"))
+
+    with open(filepath, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerows(rows)
+
+    print(f"[+] CSV log saved to: {filepath}\n")
 
 
 if __name__ == "__main__":
