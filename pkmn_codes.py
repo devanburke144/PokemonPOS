@@ -13,14 +13,35 @@ CSV_PATH = os.path.join(BASE_DIR, "cards.csv")
 DATA_PATH = os.path.join(BASE_DIR, "data.csv")
 DB_PATH = os.path.join(BASE_DIR, "database.db")
 SKU_PATH = os.path.join(BASE_DIR, "sku.txt")
-TABLE_NAME = 'pkmn'
-
+TABLE_NAME = 'pkmn' # 'inventory'
 LOG_FOLDER = "logs"
 
 # Example table schema (customize this)
 # created_at TEXT DEFAULT CURRENT_TIMESTAMP
 TABLE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS pkmn(
+    tcgplayer_id TEXT,
+    product_line TEXT,
+    set_name TEXT,
+    product_name TEXT,
+    title TEXT,
+    number TEXT,
+    rarity TEXT,
+    condition TEXT,
+    tcg_market_price REAL,
+    tcg_direct_low REAL,
+    tcg_low_shipped REAL,
+    tcg_low REAL,
+    total_quantity INTEGER,
+    add_quantity INTEGER,
+    tcg_marketplace_price REAL,
+    photo_url TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+INVENTORY_SCHEMA = """
+CREATE TABLE IF NOT EXISTS inventory(
     tcgplayer_id TEXT,
     product_line TEXT,
     set_name TEXT,
@@ -219,6 +240,7 @@ def master_checker(sku):
     
 def update_csv(csv_path=CSV_PATH):
     data_cleaned = np.genfromtxt(csv_path, delimiter=",", dtype=str, skip_header=1)
+  
     quantities = np.array(data_cleaned[:,13].astype(int))
     data_cleaned = data_cleaned[:, [0,3,8]]
     data_cleaned = np.repeat(data_cleaned, quantities, 0)
@@ -352,4 +374,4 @@ def scan_cards():
 
 
 if __name__ == "__main__":
-    scan_cards()
+    update_csv()
