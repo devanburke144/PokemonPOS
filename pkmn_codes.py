@@ -66,6 +66,28 @@ CREATE TABLE IF NOT EXISTS inventory(
 );
 """
 
+INVENTORY_SCHEMA = """
+CREATE TABLE IF NOT EXISTS inventory(
+    tcgplayer_id TEXT,
+    product_line TEXT,
+    set_name TEXT,
+    product_name TEXT,
+    title TEXT,
+    number TEXT,
+    rarity TEXT,
+    condition TEXT,
+    tcg_market_price REAL,
+    tcg_direct_low REAL,
+    tcg_low_shipped REAL,
+    tcg_low REAL,
+    total_quantity INTEGER,
+    add_quantity INTEGER,
+    tcg_marketplace_price REAL,
+    photo_url TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
 def get_connection():
     """Create and return a connection to the SQLite database."""
     return sqlite3.connect(DB_PATH)
@@ -74,6 +96,7 @@ def create_table():
     """Create the main table if it does not already exist."""
     with get_connection() as conn:
         conn.execute(TABLE_SCHEMA)
+        conn.execute(INVENTORY_SCHEMA)
         conn.execute(INVENTORY_SCHEMA)
         conn.commit()
 

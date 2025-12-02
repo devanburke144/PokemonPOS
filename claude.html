@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Point of Sale System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            margin-top: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+            border: none;
+            color: white;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .add-item-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .cart-section {
+            margin-bottom: 30px;
+        }
+
+        .cart-section h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .cart-items {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .cart-item:hover {
+            background: #f8f9fa;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .item-price {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .remove-btn:hover {
+            background: #ff3838;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+
+        .total-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 15px;
+            font-size: 1.2em;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-content input {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .confirm-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .change-display {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .change-amount {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        .balance-due {
+            color: #e74c3c;
+        }
+
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .transactions-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .transactions-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .transactions-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-paid {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .status-partial {
+            color: #f39c12;
+            font-weight: 600;
+        }
+
+        .no-transactions {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+
+        .transaction-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .summary-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 Point of Sale</h1>
+            <p>Simple & Fast Checkout</p>
+            <div class="tabs">
+                <button class="tab active" id="posTabBtn">Point of Sale</button>
+                <button class="tab" id="transactionsTabBtn">Transactions</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="posTab" class="tab-content active">
+                <div class="barcode-section" style="margin-bottom: 20px;">
+                    <input type="text" id="barcodeInput" placeholder="Scan barcode or enter SKU" style="width: 100%; font-size: 1.1em; padding: 15px;">
+                </div>
+
+                <div class="add-item-section">
+                    <input type="text" id="itemName" placeholder="Item name">
+                    <input type="number" id="itemPrice" placeholder="Price" step="0.01" min="0">
+                    <button class="add-btn" id="addItemBtn">Add Item</button>
+                </div>
+
+                <div class="cart-section">
+                    <h2>Shopping Cart</h2>
+                    <div class="cart-items" id="cartItems">
+                        <div class="empty-cart">
+                            <p>🛒 Cart is empty</p>
+                            <p style="font-size: 0.9em; margin-top: 10px;">Add items to get started</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="total-section">
+                    <div class="total">
+                        <span>Total:</span>
+                        <span id="totalAmount">$0.00</span>
+                    </div>
+                </div>
+
+                <button class="checkout-btn" id="checkoutBtn" disabled>
+                    Checkout
+                </button>
+            </div>
+
+            <div id="transactionsTab" class="tab-content">
+                <h2 style="margin-bottom: 20px;">Transaction History</h2>
+                
+                <div class="transaction-summary" id="transactionSummary">
+                    <div class="summary-card">
+                        <div class="summary-label">Total Sales</div>
+                        <div class="summary-value" id="totalSales">$0.00</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Transactions</div>
+                        <div class="summary-value" id="totalTransactions">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Outstanding</div>
+                        <div class="summary-value" id="totalOutstanding">$0.00</div>
+                    </div>
+                </div>
+
+                <div id="transactionsContainer">
+                    <div class="no-transactions">
+                        <p>📋 No transactions yet</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Completed sales will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <h2>Checkout</h2>
+            <p style="margin-bottom: 15px;">Total: <strong id="modalTotal">$0.00</strong></p>
+            <input type="number" id="cashReceived" placeholder="Cash received" step="0.01" min="0">
+            <div id="changeSection" style="display: none;" class="change-display">
+                <p id="changeLabel">Change Due:</p>
+                <p class="change-amount" id="changeAmount">$0.00</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-btn" id="cancelBtn">Cancel</button>
+                <button class="confirm-btn" id="completeBtn">Complete Sale</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let itemId = 0;
+        let transactions = [];
+        let transactionId = 1;
+
+        const productDatabase = {
+            '1234567890': { name: 'Wireless Mouse', price: 29.99 },
+            '0987654321': { name: 'USB Cable', price: 9.99 },
+            '1111111111': { name: 'Keyboard', price: 49.99 },
+            '2222222222': { name: 'Monitor', price: 199.99 },
+            '3333333333': { name: 'Laptop Stand', price: 39.99 },
+            '4444444444': { name: 'Webcam', price: 79.99 },
+            '5555555555': { name: 'Headphones', price: 59.99 },
+            '6666666666': { name: 'Phone Charger', price: 19.99 },
+            '7777777777': { name: 'HDMI Cable', price: 14.99 },
+            '8888888888': { name: 'External SSD', price: 89.99 }
+        };
+
+        function addItem() {
+            const nameInput = document.getElementById('itemName');
+            const priceInput = document.getElementById('itemPrice');
+            
+            const name = nameInput.value.trim();
+            const price = parseFloat(priceInput.value);
+
+            if (!name || isNaN(price) || price <= 0) {
+                alert('Please enter a valid item name and price');
+                return;
+            }
+
+            cart.push({
+                id: itemId++,
+                name: name,
+                price: price
+            });
+
+            nameInput.value = '';
+            priceInput.value = '';
+            nameInput.focus();
+
+            updateCart();
+        }
+
+        function addItemFromBarcode(sku) {
+            const product = productDatabase[sku];
+            
+            if (product) {
+                cart.push({
+                    id: itemId++,
+                    name: product.name,
+                    price: product.price,
+                    sku: sku
+                });
+                updateCart();
+                
+                const barcodeInput = document.getElementById('barcodeInput');
+                barcodeInput.style.background = '#d4edda';
+                setTimeout(() => {
+                    barcodeInput.style.background = '';
+                }, 500);
+            } else {
+                alert('Product not found for SKU: ' + sku);
+                const barcodeInput = document.getElementById('barcodeInput');
+                barcodeInput.style.background = '#f8d7da';
+                setTimeout(() => {
+                    barcodeInput.style.background = '';
+                }, 500);
+            }
+        }
+
+        function removeItem(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cartItems');
+            const totalAmount = document.getElementById('totalAmount');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="empty-cart"><p>🛒 Cart is empty</p><p style="font-size: 0.9em; margin-top: 10px;">Add items to get started</p></div>';
+                checkoutBtn.disabled = true;
+            } else {
+                cartItems.innerHTML = cart.map(item => 
+                    '<div class="cart-item"><span class="item-name">' + item.name + '</span><span class="item-price">$' + item.price.toFixed(2) + '</span><button class="remove-btn" onclick="removeItem(' + item.id + ')">Remove</button></div>'
+                ).join('');
+                checkoutBtn.disabled = false;
+            }
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            totalAmount.textContent = '$' + total.toFixed(2);
+        }
+
+        function openCheckout() {
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('modalTotal').textContent = '$' + total.toFixed(2);
+            document.getElementById('cashReceived').value = '';
+            document.getElementById('changeSection').style.display = 'none';
+            document.getElementById('checkoutModal').classList.add('active');
+            document.getElementById('cashReceived').focus();
+        }
+
+        function closeCheckout() {
+            document.getElementById('checkoutModal').classList.remove('active');
+        }
+
+        function completeCheckout() {
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+
+            if (cashReceived === 0) {
+                alert('Please enter the cash amount received');
+                return;
+            }
+
+            const changeLabel = document.getElementById('changeLabel');
+            const changeAmountEl = document.getElementById('changeAmount');
+            const changeSection = document.getElementById('changeSection');
+            
+            if (cashReceived < total) {
+                const balanceDue = total - cashReceived;
+                changeLabel.textContent = 'Balance Due:';
+                changeAmountEl.textContent = '$' + balanceDue.toFixed(2);
+                changeAmountEl.className = 'change-amount balance-due';
+                changeSection.style.display = 'block';
+                
+                transactions.unshift({
+                    id: transactionId++,
+                    date: new Date().toLocaleString(),
+                    items: JSON.parse(JSON.stringify(cart)),
+                    total: total,
+                    paid: cashReceived,
+                    balance: balanceDue,
+                    status: 'Partial Payment'
+                });
+                
+                setTimeout(() => {
+                    cart = [];
+                    updateCart();
+                    updateTransactions();
+                    closeCheckout();
+                    alert('Partial payment recorded. Balance due: $' + balanceDue.toFixed(2));
+                }, 3000);
+            } else {
+                const change = cashReceived - total;
+                changeLabel.textContent = 'Change Due:';
+                changeAmountEl.textContent = '$' + change.toFixed(2);
+                changeAmountEl.className = 'change-amount';
+                changeSection.style.display = 'block';
+                
+                transactions.unshift({
+                    id: transactionId++,
+                    date: new Date().toLocaleString(),
+                    items: JSON.parse(JSON.stringify(cart)),
+                    total: total,
+                    paid: cashReceived,
+                    balance: 0,
+                    status: 'Paid'
+                });
+
+                setTimeout(() => {
+                    cart = [];
+                    updateCart();
+                    updateTransactions();
+                    closeCheckout();
+                    alert('Sale completed successfully!');
+                }, 3000);
+            }
+        }
+
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(tc => tc.classList.remove('active'));
+            
+            if (tab === 'pos') {
+                tabs[0].classList.add('active');
+                document.getElementById('posTab').classList.add('active');
+            } else if (tab === 'transactions') {
+                tabs[1].classList.add('active');
+                document.getElementById('transactionsTab').classList.add('active');
+                updateTransactions();
+            }
+        }
+
+        function updateTransactions() {
+            const container = document.getElementById('transactionsContainer');
+            
+            if (transactions.length === 0) {
+                container.innerHTML = '<div class="no-transactions"><p>📋 No transactions yet</p><p style="font-size: 0.9em; margin-top: 10px;">Completed sales will appear here</p></div>';
+            } else {
+                const totalSales = transactions.reduce((sum, t) => sum + t.total, 0);
+                const totalOutstanding = transactions.reduce((sum, t) => sum + t.balance, 0);
+                
+                document.getElementById('totalSales').textContent = '$' + totalSales.toFixed(2);
+                document.getElementById('totalTransactions').textContent = transactions.length;
+                document.getElementById('totalOutstanding').textContent = '$' + totalOutstanding.toFixed(2);
+                
+                container.innerHTML = '<table class="transactions-table"><thead><tr><th>ID</th><th>Date</th><th>Items</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>' + 
+                    transactions.map(t => 
+                        '<tr><td>#' + t.id + '</td><td>' + t.date + '</td><td>' + t.items.length + ' item(s)</td><td>$' + t.total.toFixed(2) + '</td><td>$' + t.paid.toFixed(2) + '</td><td>$' + t.balance.toFixed(2) + '</td><td class="' + (t.status === 'Paid' ? 'status-paid' : 'status-partial') + '">' + t.status + '</td></tr>'
+                    ).join('') + 
+                    '</tbody></table>';
+            }
+        }
+
+        document.getElementById('addItemBtn').addEventListener('click', addItem);
+        document.getElementById('checkoutBtn').addEventListener('click', openCheckout);
+        document.getElementById('cancelBtn').addEventListener('click', closeCheckout);
+        document.getElementById('completeBtn').addEventListener('click', completeCheckout);
+        document.getElementById('posTabBtn').addEventListener('click', () => switchTab('pos'));
+        document.getElementById('transactionsTabBtn').addEventListener('click', () => switchTab('transactions'));
+
+        document.getElementById('barcodeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const sku = this.value.trim();
+                if (sku) {
+                    addItemFromBarcode(sku);
+                    this.value = '';
+                }
+            }
+        });
+
+        document.addEventListener('keypress', function(e) {
+            const barcodeInput = document.getElementById('barcodeInput');
+            if (e.key >= '0' && e.key <= '9' && 
+                document.activeElement !== barcodeInput && 
+                document.activeElement.tagName !== 'INPUT') {
+                barcodeInput.focus();
+            }
+        });
+
+        document.getElementById('itemName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('itemPrice').focus();
+            }
+        });
+
+        document.getElementById('itemPrice').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addItem();
+            }
+        });
+    </script>
+</body>
+</html>
