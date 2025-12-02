@@ -10,7 +10,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))  # script directory
 csv_file = os.path.join(current_dir, csv_filename)
 output_file = os.path.join(current_dir, output_filename)
 
-table_name = 'pkmn'
+table_name = 'pkmn' # 'inventory'
 csv_to_db = {
     'TCGplayer Id': 'tcgplayer_id',
     'Product Line': 'product_line',
